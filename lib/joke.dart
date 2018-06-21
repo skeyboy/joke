@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'model.dart';
 import 'package:flutter/cupertino.dart';
 import 'video_payer.dart';
-import 'package:chewie/chewie.dart';
+import 'joke_detail.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class TextWidget extends StatelessWidget {
   Item model;
@@ -18,7 +19,10 @@ class TextWidget extends StatelessWidget {
         new Row(
           children: <Widget>[
             new CircleAvatar(
-              child: new Image.network(model.header),
+              child: new CachedNetworkImage(
+                imageUrl: model.header,
+                placeholder: new Icon(Icons.image),
+              ),
             ),
             new Column(
               children: <Widget>[
@@ -56,13 +60,12 @@ class TextWidget extends StatelessWidget {
       decoration: new BoxDecoration(
           border:
               new Border(top: new BorderSide(color: Colors.grey, width: 10.0))),
-      child:  new Column(
-          children: <Widget>[
-            top(model),
-            content(context, model),
-          ],
-        )
-      ,
+      child: new Column(
+        children: <Widget>[
+          top(model),
+          content(context, model),
+        ],
+      ),
       margin: new EdgeInsets.all(5.0),
     );
   }
@@ -74,14 +77,13 @@ class VideoWidget extends TextWidget {
   @override
   Widget content(BuildContext context, Item model) {
     // TODO: implement video
-    return   new Container(
-        child:
+    return new Container(
+      child:
 //      new VideoApp(model.video)
 
-            model.video != null
-                ? new VideoApp(videourl: model.video)
-                : new Image.network(model.thumbnail),
-
+          model.video != null
+              ? new VideoApp(videourl: model.video)
+              : new Image.network(model.thumbnail),
     );
   }
 }
@@ -92,9 +94,15 @@ class GifWidget extends TextWidget {
   @override
   Widget content(BuildContext context, Item model) {
     // TODO: implement video
-    return   new Container(
-        child: new Image.network(model.gif),
-      );
+    return new Container(
+      child: new CachedNetworkImage(
+        imageUrl: model.gif,
+        placeholder: new CircularProgressIndicator(),
+        errorWidget: new Icon(Icons.image),
+        fadeOutDuration: new Duration(seconds: 1),
+        fadeInDuration: new Duration(seconds: 1),
+      ),
+    );
   }
 }
 
@@ -104,9 +112,15 @@ class ImageWidget extends GifWidget {
   @override
   Widget content(BuildContext context, Item model) {
     // TODO: implement video
-    return  new Container(
-        child: new Image.network(model.image),
 
+    return new Container(
+      child: new CachedNetworkImage(
+        imageUrl: model.image,
+        placeholder: new CircularProgressIndicator(),
+        errorWidget: new Icon(Icons.error),
+        fadeOutDuration: new Duration(seconds: 1),
+        fadeInDuration: new Duration(seconds: 3),
+      ),
     );
   }
 }

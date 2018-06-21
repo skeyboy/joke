@@ -8,6 +8,7 @@ import 'model.dart';
 import 'fetch.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class JokeDetail extends StatefulWidget {
   String title;
@@ -40,15 +41,42 @@ class _JokeDetailState extends State<JokeDetail> {
     fetchComments = new FetchComments();
   }
 
+  Widget _buildFullImagePage(Widget w, String image) {
+    return new GestureDetector(
+      onTap: () {
+        Navigator.push(context,
+            new MaterialPageRoute(builder: (BuildContext ctx) {
+          return new Scaffold(
+            backgroundColor: Colors.black45,
+            body: new Center(
+              child: new Column(
+                children: <Widget>[
+                  new CachedNetworkImage(
+                    imageUrl: image,
+                    placeholder: new CircularProgressIndicator(),
+                    errorWidget: new Icon(Icons.broken_image),
+                  )
+                ],
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+              ),
+            ),
+          );
+        }));
+      },
+      child: w,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
 
     Widget widget = null;
     if (item.type == "gif") {
-      widget = new GifWidget(item);
+      widget = _buildFullImagePage(new GifWidget(item), item.gif);
     } else if (item.type == "image") {
-      widget = new ImageWidget(item);
+      widget = _buildFullImagePage(new ImageWidget(item), item.image);
     } else if (item.type == "video") {
       widget = new VideoWidget(item);
     } else {
@@ -71,7 +99,11 @@ class _JokeDetailState extends State<JokeDetail> {
                 builder: (context, snap) {
                   if (mounted == false || snap.hasData == false) {
                     return new Center(
-                      child: new CircularProgressIndicator(),
+                      child: new Column(
+                        children: <Widget>[new CircularProgressIndicator()],
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                      ),
                     );
                   }
                   return new Column(
@@ -100,10 +132,20 @@ class _JokeDetailState extends State<JokeDetail> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          new Image.network(
-            item.user.profile_image,
+          new CachedNetworkImage(
+            imageUrl: item.user.profile_image,
+            placeholder: new Container(
+              width: 40.0,
+              height: 40.0,
+              child: new Icon(Icons.image),
+            ),
             fit: BoxFit.contain,
-            height: 40.0,
+            width: 40.0,
+            errorWidget: new Container(
+              width: 40.0,
+              height: 40.0,
+              child: new Icon(Icons.broken_image),
+            ),
           ),
           new Expanded(
               child: new Column(

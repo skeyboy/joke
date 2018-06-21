@@ -68,12 +68,10 @@ class _BodyState extends State<Body> {
         },
       ),
       drawer: new Container(),
-      body: new Container(
-        child: new SingleChildScrollView(child: new IndexedStack(
-          index: _curIndex,
-          children: pages,
-        )),
-      ),
+      body:new IndexedStack(
+        index: _curIndex,
+        children: pages,
+      )
     );
   }
 }

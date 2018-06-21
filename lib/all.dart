@@ -37,6 +37,51 @@ class _AllState extends State<All> {
     page = 1;
   }
 
+  Widget _buildFutureViews() {
+    return new FutureBuilder<AllModel>(
+        future: fetch().fetch(),
+        builder: (cxt, snap) {
+          if (mounted == false || snap.hasData == false) {
+            return new Center(
+              child: new Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  new CircularProgressIndicator(),
+                  new Text("努力加载数据")
+                ],
+              ),
+            );
+          }
+          List<Widget> children =
+              snap.data.data.cast<Item>().map<Widget>((item) {
+            Widget widget = null;
+            if (item.type == "gif") {
+              widget = new GifWidget(item);
+            } else if (item.type == "image") {
+              widget = new ImageWidget(item);
+            } else if (item.type == "video") {
+              widget = new VideoWidget(item);
+            } else {
+              widget = new TextWidget(item);
+            }
+//            widget = new Text("${item}");
+            return new GestureDetector(
+              onTap: () async {
+                final result = await Navigator.push(context,
+                    new MaterialPageRoute(builder: (BuildContext ctx) {
+                  return new JokeDetail(item.text, "${item.soureid}", item);
+                }));
+              },
+              child: widget,
+            );
+          }).toList();
+
+          return new Column(
+            children: children,
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
@@ -44,8 +89,12 @@ class _AllState extends State<All> {
       return new Column(
         children: <Widget>[new CircularProgressIndicator()],
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
       );
     }
+    return new SingleChildScrollView(
+      child: _buildFutureViews(),
+    );
     return new FutureBuilder<AllModel>(
         future: fetch().fetch(),
         builder: (cxt, snap) {
