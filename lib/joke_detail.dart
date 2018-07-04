@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'model.dart';
 import 'joke.dart';
 import 'model.dart';
@@ -68,10 +69,9 @@ class _JokeDetailState extends State<JokeDetail> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
+  AppBarBehavior _appBarBehavior = AppBarBehavior.pinned;
 
+  Widget _buildSliverApp() {
     Widget widget = null;
     if (item.type == "gif") {
       widget = _buildFullImagePage(new GifWidget(item), item.gif);
@@ -83,42 +83,104 @@ class _JokeDetailState extends State<JokeDetail> {
       widget = new TextWidget(item);
     }
 
-    if (comments != null) {
-      print(json.decode(comments));
-    }
-    return new Scaffold(
-      appBar: new AppBar(
-        title: new Text(this.item.type),
-      ),
-      body: new SingleChildScrollView(
-        child: new Column(
-          children: <Widget>[
-            widget,
-            new FutureBuilder<Comments>(
-                future: fetchComments.fetch(item.soureid, 1),
-                builder: (context, snap) {
-                  if (mounted == false || snap.hasData == false) {
-                    return new Center(
-                      child: new Column(
-                        children: <Widget>[new CircularProgressIndicator()],
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                      ),
-                    );
-                  }
-                  return new Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      new Text("Hot"),
-                      _build(snap.data.data.hot),
-                      new Text("Normal"),
-                      _buildNormal(snap.data.data.nromal)
-                    ],
-                  );
-                })
-          ],
+    return new SliverAppBar(
+      expandedHeight: 256.0,
+      pinned: _appBarBehavior == AppBarBehavior.pinned,
+      floating: true,
+      snap: true,
+      actions: <Widget>[
+        new IconButton(
+          icon: const Icon(Icons.create),
+          tooltip: 'Edit',
+          onPressed: () {
+            _scaffoldKey.currentState.showSnackBar(const SnackBar(
+                content:
+                    const Text("Editing isn't supported in this screen.")));
+          },
         ),
+        new PopupMenuButton<AppBarBehavior>(
+          onSelected: (AppBarBehavior value) {
+            setState(() {
+              _appBarBehavior = value;
+            });
+          },
+          itemBuilder: (BuildContext context) =>
+              <PopupMenuItem<AppBarBehavior>>[
+                const PopupMenuItem<AppBarBehavior>(
+                    value: AppBarBehavior.normal,
+                    child: const Text('App bar scrolls away')),
+                const PopupMenuItem<AppBarBehavior>(
+                    value: AppBarBehavior.pinned,
+                    child: const Text('App bar stays put')),
+                const PopupMenuItem<AppBarBehavior>(
+                    value: AppBarBehavior.floating,
+                    child: const Text('App bar floats')),
+                const PopupMenuItem<AppBarBehavior>(
+                    value: AppBarBehavior.snapping,
+                    child: const Text('App bar snaps')),
+              ],
+        ),
+      ],
+      flexibleSpace: new FlexibleSpaceBar(
+        title: new Text(item.type),
+        background: new SingleChildScrollView(child: widget,),
       ),
+    );
+  }
+
+  Widget _buildContent() {
+    return new CustomScrollView(
+      slivers: <Widget>[
+        _buildSliverApp(),
+        new SliverList(
+            delegate: new SliverChildListDelegate(<Widget>[
+          new AnnotatedRegion<SystemUiOverlayStyle>(
+              value: SystemUiOverlayStyle.light,
+              child: new SingleChildScrollView(
+                child: new Column(
+                  children: <Widget>[
+                    new FutureBuilder<Comments>(
+                        future: fetchComments.fetch(item.soureid, 1),
+                        builder: (context, snap) {
+                          if (mounted == false || snap.hasData == false) {
+                            return new Center(
+                              child: new Column(
+                                children: <Widget>[
+                                  new CircularProgressIndicator()
+                                ],
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                              ),
+                            );
+                          }
+                          return new Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              new Text("Hot"),
+                              _build(snap.data.data.hot),
+                              new Text("Normal"),
+                              _buildNormal(snap.data.data.nromal)
+                            ],
+                          );
+                        })
+                  ],
+                ),
+              ))
+        ]))
+      ],
+    );
+  }
+
+  static final GlobalKey<ScaffoldState> _scaffoldKey =
+      new GlobalKey<ScaffoldState>();
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+
+    return new Scaffold(
+      key: _scaffoldKey,
+      body: _buildContent(),
     );
   }
 
@@ -181,3 +243,5 @@ class _JokeDetailState extends State<JokeDetail> {
     );
   }
 }
+
+enum AppBarBehavior { normal, pinned, floating, snapping }

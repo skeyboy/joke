@@ -36,22 +36,30 @@ class _AllState extends State<All> {
     modes = null;
     page = 1;
   }
-
+Widget loadingView(){
+  return new Center(
+    child: new Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        new CircularProgressIndicator(),
+        new Text("努力加载数据")
+      ],
+    ),
+  );
+}
   Widget _buildFutureViews() {
+    if(!mounted) {
+      return loadingView();
+    }
+
     return new FutureBuilder<AllModel>(
         future: fetch().fetch(),
         builder: (cxt, snap) {
           if (mounted == false || snap.hasData == false) {
-            return new Center(
-              child: new Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  new CircularProgressIndicator(),
-                  new Text("努力加载数据")
-                ],
-              ),
-            );
+           return loadingView();
           }
+
           List<Widget> children =
               snap.data.data.cast<Item>().map<Widget>((item) {
             Widget widget = null;
