@@ -13,7 +13,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   video_player: "^0.6.0"
-  chewie: "^0.6.1"
+  chewie: "^0.7.0"
   cached_network_image: "^0.4.1+1"
 
 

@@ -1,15 +1,9 @@
-import 'dart:async';
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+
+import './joke.dart';
+import './joke_detail.dart';
 import './model.dart';
 import 'fetch.dart';
-import './joke.dart';
-import 'package:http/http.dart' as http;
-import './joke_detail.dart';
-import 'video_payer.dart';
 import 'joke_detail.dart';
 
 class All extends StatefulWidget {
@@ -36,20 +30,19 @@ class _AllState extends State<All> {
     modes = null;
     page = 1;
   }
-Widget loadingView(){
-  return new Center(
-    child: new Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        new CircularProgressIndicator(),
-        new Text("努力加载数据")
-      ],
-    ),
-  );
-}
+
+  Widget loadingView() {
+    return new Center(
+      child: new Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[new CircularProgressIndicator(), new Text("努力加载数据")],
+      ),
+    );
+  }
+
   Widget _buildFutureViews() {
-    if(!mounted) {
+    if (!mounted) {
       return loadingView();
     }
 
@@ -57,36 +50,41 @@ Widget loadingView(){
         future: fetch().fetch(),
         builder: (cxt, snap) {
           if (mounted == false || snap.hasData == false) {
-           return loadingView();
+            return loadingView();
           }
 
-          List<Widget> children =
-              snap.data.data.cast<Item>().map<Widget>((item) {
-            Widget widget = null;
-            if (item.type == "gif") {
-              widget = new GifWidget(item);
-            } else if (item.type == "image") {
-              widget = new ImageWidget(item);
-            } else if (item.type == "video") {
-              widget = new VideoWidget(item);
-            } else {
-              widget = new TextWidget(item);
-            }
-//            widget = new Text("${item}");
-            return new GestureDetector(
-              onTap: () async {
-                final result = await Navigator.push(context,
-                    new MaterialPageRoute(builder: (BuildContext ctx) {
-                  return new JokeDetail(item.text, "${item.soureid}", item);
-                }));
-              },
-              child: widget,
-            );
+          List<Item> items = snap.data.data.cast<Item>().map<Item>((item) {
+            return item;
           }).toList();
 
-          return new Column(
-            children: children,
+          ListView listView = new ListView.builder(
+            itemBuilder: (BuildContext build, int index) {
+              Widget widget;
+              Item item = items[index];
+              if (item.type == "gif") {
+                widget = new GifWidget(item);
+              } else if (item.type == "image") {
+                widget = new ImageWidget(item);
+              } else if (item.type == "video") {
+                widget = new VideoWidget(item);
+              } else {
+                widget = new TextWidget(item);
+              }
+
+              return new GestureDetector(
+                onTap: () async {
+                  final result = await Navigator.push(context,
+                      new MaterialPageRoute(builder: (BuildContext ctx) {
+                    return new JokeDetail(item.text, "${item.soureid}", item);
+                  }));
+                },
+                child: widget,
+              );
+            },
+            itemCount: items.length,
           );
+
+          return listView;
         });
   }
 
@@ -100,51 +98,13 @@ Widget loadingView(){
         crossAxisAlignment: CrossAxisAlignment.center,
       );
     }
-    return new SingleChildScrollView(
-      child: _buildFutureViews(),
-    );
-    return new FutureBuilder<AllModel>(
-        future: fetch().fetch(),
-        builder: (cxt, snap) {
-          if (mounted == false || snap.hasData == false) {
-            return new Center(
-              child: new Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  new CircularProgressIndicator(),
-                  new Text("努力加载数据")
-                ],
-              ),
-            );
-          }
-          List<Widget> children =
-              snap.data.data.cast<Item>().map<Widget>((item) {
-            Widget widget = null;
-            if (item.type == "gif") {
-              widget = new GifWidget(item);
-            } else if (item.type == "image") {
-              widget = new ImageWidget(item);
-            } else if (item.type == "video") {
-              widget = new VideoWidget(item);
-            } else {
-              widget = new TextWidget(item);
-            }
-//            widget = new Text("${item}");
-            return new GestureDetector(
-              onTap: () {
-                Navigator.push(context,
-                    new MaterialPageRoute(builder: (BuildContext ctx) {
-                  return new JokeDetail(item.text, "${item.soureid}", item);
-                }));
-              },
-              child: widget,
-            );
-          }).toList();
+    return _buildFutureViews();
+  }
 
-          return new Column(
-            children: children,
-          );
-        });
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
   }
 }
 
