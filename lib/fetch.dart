@@ -1,11 +1,9 @@
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart';
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 
 import './model.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'dart:async';
-import 'package:flutter/material.dart';
 
 abstract class FetchClass<Model> {
   String type;
@@ -18,12 +16,12 @@ abstract class FetchClass<Model> {
         .get("https://www.apiopen.top/satinGodApi?type=${type}&page=${page}");
     return new AllModel().fromJson(json.decode(response.body));
   }
-  Future<void> noFutureFetch( int page ,Function callBack) async {
-     this.page = "$page";
+
+  Future<void> noFutureFetch(int page, Function callBack) async {
+    this.page = "$page";
     final response = await new http.Client()
         .get("https://www.apiopen.top/satinGodApi?type=${type}&page=${page}");
-    callBack( new AllModel().fromJson(json.decode(response.body)));
-
+    callBack(new AllModel().fromJson(json.decode(response.body)));
   }
 }
 

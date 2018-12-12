@@ -15,6 +15,7 @@ dev_dependencies:
   video_player: "^0.6.0"
   chewie: "^0.7.0"
   cached_network_image: "^0.4.1+1"
+  dio: "1.0.9"
 
 
 # For information on the generic Dart part of this file, see the
