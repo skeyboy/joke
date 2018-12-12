@@ -18,6 +18,13 @@ abstract class FetchClass<Model> {
         .get("https://www.apiopen.top/satinGodApi?type=${type}&page=${page}");
     return new AllModel().fromJson(json.decode(response.body));
   }
+  Future<void> noFutureFetch( int page ,Function callBack) async {
+     this.page = "$page";
+    final response = await new http.Client()
+        .get("https://www.apiopen.top/satinGodApi?type=${type}&page=${page}");
+    callBack( new AllModel().fromJson(json.decode(response.body)));
+
+  }
 }
 
 class AllFetch extends FetchClass<AllModel> {

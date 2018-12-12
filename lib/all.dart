@@ -41,70 +41,95 @@ class _AllState extends State<All> {
     );
   }
 
-  Widget _buildFutureViews() {
-    if (!mounted) {
-      return loadingView();
+
+  Widget buildItem(Item item) {
+    Widget widget;
+    if (item.type == "gif") {
+      widget = new GifWidget(item);
+    } else if (item.type == "image") {
+      widget = new ImageWidget(item);
+    } else if (item.type == "video") {
+      widget = new VideoWidget(item);
+    } else {
+      widget = new TextWidget(item);
     }
 
-    return new FutureBuilder<AllModel>(
-        future: fetch().fetch(),
-        builder: (cxt, snap) {
-          if (mounted == false || snap.hasData == false) {
-            return loadingView();
-          }
-
-          List<Item> items = snap.data.data.cast<Item>().map<Item>((item) {
-            return item;
-          }).toList();
-
-          ListView listView = new ListView.builder(
-            itemBuilder: (BuildContext build, int index) {
-              Widget widget;
-              Item item = items[index];
-              if (item.type == "gif") {
-                widget = new GifWidget(item);
-              } else if (item.type == "image") {
-                widget = new ImageWidget(item);
-              } else if (item.type == "video") {
-                widget = new VideoWidget(item);
-              } else {
-                widget = new TextWidget(item);
-              }
-
-              return new GestureDetector(
-                onTap: () async {
-                  final result = await Navigator.push(context,
-                      new MaterialPageRoute(builder: (BuildContext ctx) {
-                    return new JokeDetail(item.text, "${item.soureid}", item);
-                  }));
-                },
-                child: widget,
-              );
-            },
-            itemCount: items.length,
-          );
-
-          return listView;
-        });
+    return new GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(context,
+            new MaterialPageRoute(builder: (BuildContext ctx) {
+          return new JokeDetail(item.text, "${item.soureid}", item);
+        }));
+      },
+      child: widget,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    if (mounted == false) {
+    if (isLoading) {
       return new Column(
         children: <Widget>[new CircularProgressIndicator()],
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
       );
     }
-    return _buildFutureViews();
+    return new Column(children: <Widget>[
+      ListView.builder(
+        itemBuilder: (BuildContext build, int index) {
+          return buildItem(_items[index]);
+        },
+        itemCount: _items.length,
+        controller: _controller,
+      ),
+      more && isLoading ? loadingView(): null
+    ],)
+   }
+
+  List<Item> _items;
+  bool isLoading = true;
+  bool more = false;
+  ScrollController _controller;
+
+  void _getMoreData(int page) {
+    fetch().noFutureFetch(page,(AllModel allModel) {
+      _items.addAll(allModel.data.map<Item>((Item i) {
+        return i;
+      }));
+      setState(() {
+        _items = _items;
+        isLoading = false;
+        more = false;
+      });
+    });
   }
 
   @override
   void initState() {
     // TODO: implement initState
+    _controller = new ScrollController();
+    _controller.addListener(() {
+      if (_controller.position.pixels == _controller.position.maxScrollExtent) {
+        more = true;
+        isLoading = true;
+        page = page +1;
+        _getMoreData(page);
+      }
+    });
+
     super.initState();
+    _items = new List();
+    isLoading = true;
+    fetch().noFutureFetch(1,(AllModel allModel) {
+      if (allModel.data.length > 0){
+        _items.clear();
+      }
+      setState(() {
+        _items = allModel.data;
+        isLoading = false;
+      });
+    });
   }
 }
 
