@@ -41,7 +41,6 @@ class _AllState extends State<All> {
     );
   }
 
-
   Widget buildItem(Item item) {
     Widget widget;
     if (item.type == "gif") {
@@ -68,24 +67,30 @@ class _AllState extends State<All> {
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    if (isLoading) {
+    if ((more == false) && isLoading) {
       return new Column(
         children: <Widget>[new CircularProgressIndicator()],
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
       );
     }
-    return new Column(children: <Widget>[
-      ListView.builder(
-        itemBuilder: (BuildContext build, int index) {
-          return buildItem(_items[index]);
-        },
-        itemCount: _items.length,
-        controller: _controller,
-      ),
-      more && isLoading ? loadingView(): null
-    ],)
-   }
+
+    return ListView.builder(
+      itemBuilder: (BuildContext build, int index) {
+        return buildItem(_items[index]);
+      },
+      itemCount: _items.length,
+      controller: _controller,
+    );
+
+//    return ListView.builder(
+//      itemBuilder: (BuildContext build, int index) {
+//        return buildItem(_items[index]);
+//      },
+//      itemCount: _items.length,
+//      controller: _controller,
+//    );
+  }
 
   List<Item> _items;
   bool isLoading = true;
@@ -93,14 +98,14 @@ class _AllState extends State<All> {
   ScrollController _controller;
 
   void _getMoreData(int page) {
-    fetch().noFutureFetch(page,(AllModel allModel) {
+    fetch().noFutureFetch(page, (AllModel allModel) {
       _items.addAll(allModel.data.map<Item>((Item i) {
         return i;
       }));
+      isLoading = false;
+      more = false;
       setState(() {
         _items = _items;
-        isLoading = false;
-        more = false;
       });
     });
   }
@@ -113,7 +118,7 @@ class _AllState extends State<All> {
       if (_controller.position.pixels == _controller.position.maxScrollExtent) {
         more = true;
         isLoading = true;
-        page = page +1;
+        page = page + 1;
         _getMoreData(page);
       }
     });
@@ -121,13 +126,14 @@ class _AllState extends State<All> {
     super.initState();
     _items = new List();
     isLoading = true;
-    fetch().noFutureFetch(1,(AllModel allModel) {
-      if (allModel.data.length > 0){
+    fetch().noFutureFetch(1, (AllModel allModel) {
+      if (allModel.data.length > 0) {
         _items.clear();
       }
+      isLoading = false;
+
       setState(() {
         _items = allModel.data;
-        isLoading = false;
       });
     });
   }
