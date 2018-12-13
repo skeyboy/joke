@@ -1,15 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'model.dart';
+
+import 'fetch.dart';
 import 'joke.dart';
 import 'model.dart';
-import 'fetch.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:cached_network_image/cached_network_image.dart';
 
 class JokeDetail extends StatefulWidget {
   String title;
@@ -42,7 +39,10 @@ class _JokeDetailState extends State<JokeDetail> {
     fetchComments = new FetchComments();
   }
 
+  bool _tapped;
+
   Widget _buildFullImagePage(Widget w, String image) {
+    _tapped = false;
     return new GestureDetector(
       onTap: () {
         Navigator.push(context,
@@ -122,8 +122,13 @@ class _JokeDetailState extends State<JokeDetail> {
         ),
       ],
       flexibleSpace: new FlexibleSpaceBar(
-        title: new Text(item.type),
-        background: new SingleChildScrollView(child: widget,),
+        title: new Text(item.username),
+        background: new Center(
+          child: new SingleChildScrollView(
+            child: widget,
+            padding: EdgeInsets.only(top: 64),
+          ),
+        ),
       ),
     );
   }
@@ -153,6 +158,7 @@ class _JokeDetailState extends State<JokeDetail> {
                               ),
                             );
                           }
+
                           return new Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
@@ -190,48 +196,57 @@ class _JokeDetailState extends State<JokeDetail> {
 
   Widget _build(Hot hot) {
     List<Widget> list = hot.list.map<Widget>((item) {
-      return new Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      return new Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          new CachedNetworkImage(
-            imageUrl: item.user.profile_image,
-            placeholder: new Container(
-              width: 40.0,
-              height: 40.0,
-              child: new Icon(Icons.image),
-            ),
-            fit: BoxFit.contain,
-            width: 40.0,
-            errorWidget: new Container(
-              width: 40.0,
-              height: 40.0,
-              child: new Icon(Icons.broken_image),
-            ),
-          ),
-          new Expanded(
-              child: new Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          new Row(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              new Text("${item.user.username}",
-                  style: new TextStyle(
-                      fontSize: 10.0, fontWeight: FontWeight.bold)),
-              new Text(
-                item.content,
-                style: new TextStyle(fontSize: 15.0),
-              )
+              new CachedNetworkImage(
+                imageUrl: item.user.profile_image,
+                placeholder: new Container(
+                  width: 40.0,
+                  height: 40.0,
+                  child: new Icon(Icons.image),
+                ),
+                fit: BoxFit.contain,
+                width: 40.0,
+                errorWidget: new Container(
+                  width: 40.0,
+                  height: 40.0,
+                  child: new Icon(Icons.broken_image),
+                ),
+              ),
+              new Expanded(
+                  child: new Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  new Text("${item.user.username}",
+                      style: new TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey)),
+                  new Text(
+                    item.content,
+                    style: new TextStyle(fontSize: 25.0),
+                  )
+                ],
+              )),
             ],
-          )),
-          new Column(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          ),
+          new Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
+              new Icon(Icons.favorite),
               new Text("${item.hate_count}"),
-              new Text("VS"),
+              new Icon(Icons.cancel),
               new Text(" ${item.like_count}")
             ],
-          )
+          ),
         ],
       );
     }).toList();

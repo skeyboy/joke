@@ -52,4 +52,15 @@ class FetchComments {
 //    return response.body;
     return new Comments().fromJson(json.decode(response.body));
   }
+
+  Future<Comments> fetchNoFuture(int id, int page, Function calback) async {
+    final response = await new http.Client()
+        .get("https://www.apiopen.top/satinCommentApi?id=${id}&page=${page}");
+
+    Comments comments = new Comments().fromJson(json.decode(response.body));
+    if (calback != null) {
+      calback(comments);
+    }
+    return comments;
+  }
 }
